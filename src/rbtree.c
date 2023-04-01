@@ -19,7 +19,8 @@ rbtree *new_rbtree(void) {
 
   // initiate nil(sentinel node)
   p->nil->color = RBTREE_BLACK;
-  p->nil->key = p->nil->parent = p->nil->left = p->nil->right = NULL;
+  p->nil->key = 0;
+  p->nil->parent = p->nil->left = p->nil->right = NULL;
 
   // empty node: root is nil(the sentinel node)
   p->root = p->nil;
@@ -56,7 +57,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   }
   newNode->parent = current;
 
-  if (current = t->nil) { // if the tree is empty: the new node is the root
+  if (current == t->nil) { // if the tree is empty: the new node is the root
     t->root = newNode;
   } else if (key < current->key) {  // append to current node(left)
     current->left = newNode;
