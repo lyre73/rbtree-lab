@@ -7,6 +7,7 @@
 // function prototype
 int rotate_left(rbtree *, node_t *);
 int rotate_right(rbtree *, node_t *);
+int insert_fixup(rbtree *, node_t *);
 
 rbtree *new_rbtree(void) {
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
@@ -38,14 +39,31 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   node_t *newNode = (node_t*)malloc(sizeof(node_t));
   newNode->color = RBTREE_RED;
   newNode->key = key;
+  newNode->left = newNode->right = t->nil;
 
-  // return t->root;
-  // node_t *y = t->nil;
-  // node_t *x = t->root;
-  // while (x != t->nil) {
-  //   y = x;
-  //   if
-  // }
+  // initialize current and next node pointer
+  node_t *current = t->nil;
+  node_t *next = t->root;
+
+  // find newNode's parent
+  while (next != t->nil) {
+    current = next;
+    if (key < next->key) {
+      next = next->left;
+    } else {
+      next = next->right;
+    }
+  }
+  newNode->parent = current;
+
+  if (current = t->nil) { // if the tree is empty: the new node is the root
+    t->root = newNode;
+  } else if (key < current->key) {  // append to current node(left)
+    current->left = newNode;
+  } else {                          // append to current node(right)
+    current->right = newNode;
+  }
+
   return t->root;
 }
 
@@ -73,6 +91,8 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array
   return 0;
 }
+
+// my functions
 
 int rotate_left(rbtree *t, node_t *x) {
   // rotate to left, pivots around x to x's right child
@@ -133,5 +153,10 @@ int rotate_right(rbtree *t, node_t *y) {
   x->right = y; // put y on x's right
   y->parent = x; // now y have x as parent
 
+  return 0;
+}
+
+int insert_fixup(rbtree *t, node_t *z) {
+  // fixes the tree to satisfy RB properties
   return 0;
 }
