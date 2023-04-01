@@ -46,7 +46,7 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   //   y = x;
   //   if
   // }
-  
+  return t->root;
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
