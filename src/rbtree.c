@@ -11,6 +11,7 @@ node_t *subtree_max(rbtree *, node_t *);
 int transplant(rbtree *, node_t *, node_t *);
 int erase_fixup(rbtree *, node_t *);
 void postorder_free(rbtree *, node_t *);
+void inorder_arr(const rbtree *, node_t *, size_t *, key_t *, const size_t);
 
 rbtree *new_rbtree(void) {
   rbtree *t = (rbtree *)calloc(1, sizeof(rbtree));
@@ -157,6 +158,10 @@ int rbtree_erase(rbtree *t, node_t *p) {
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // TODO: implement to_array  
+
+  size_t idx = 0;
+  inorder_arr(t, t->root, &idx, arr, n);
+
   return 0;
 }
 
@@ -357,4 +362,17 @@ void postorder_free(rbtree *t, node_t *p) {
     postorder_free(t, p->right);
   }
   free(p);
+}
+
+void inorder_arr(const rbtree *t, node_t *p, size_t *idx, key_t *arr, const size_t n) {
+  if (*idx < n && p != t->nil) {
+    inorder_arr(t, p->left, idx, arr, n);
+    if (*idx < n) {
+      arr[*idx] = p->key;
+      (*idx)++;
+    }
+    if (*idx < n) {
+      inorder_arr(t, p->right, idx, arr, n);
+    }
+  }
 }
