@@ -2,30 +2,31 @@
 
 #include <stdlib.h>
 
-#define SENTINEL
-
-// function prototype
+// my function prototypes
 int rotate_left(rbtree *, node_t *);
 int rotate_right(rbtree *, node_t *);
 int insert_fixup(rbtree *, node_t *);
+node_t *subtree_min(rbtree *, node_t *);
+node_t *subtree_max(rbtree *, node_t *);
+int transplant(rbtree *, node_t *, node_t *);
+int erase_fixup(rbtree *, node_t *);
 
 rbtree *new_rbtree(void) {
-  rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
+  rbtree *t = (rbtree *)calloc(1, sizeof(rbtree));
   // TODO: initialize struct if needed
-  // Done!
 
   // make sentinel node of the tree
-  p->nil = (node_t *)malloc(sizeof(node_t));
+  t->nil = (node_t *)malloc(sizeof(node_t));
 
   // initiate nil(sentinel node)
-  p->nil->color = RBTREE_BLACK;
-  p->nil->key = 0;
-  p->nil->parent = p->nil->left = p->nil->right = NULL;
+  t->nil->color = RBTREE_BLACK;
+  t->nil->key = 0;
+  t->nil->parent = t->nil->left = t->nil->right = NULL;
 
   // empty node: root is nil(the sentinel node)
-  p->root = p->nil;
+  t->root = t->nil;
 
-  return p;
+  return t;
 }
 
 void delete_rbtree(rbtree *t) {
@@ -68,26 +69,85 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   }
   insert_fixup(t, newNode);
 
-  return t->root;
+  return newNode; // return pointer to newly added node
 }
 
 node_t *rbtree_find(const rbtree *t, const key_t key) {
   // TODO: implement find
-  return t->root;
+  // Done!
+
+  node_t *current = t->root;
+  while (current != t->nil) {
+    if (current->key == key) {
+      return current;
+    } else if (key < current->key) {
+      current = current->left;
+    } else {
+      current = current->right;
+    }
+  }
+  return NULL;
+  // return t->root;
 }
 
 node_t *rbtree_min(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t *current = t->root;
+  while (current != t->nil) {
+    if (current->left == t->nil) {
+      return current;
+    }
+    current = current->left;
+  }
+  return NULL;
+  // return t->root;
 }
 
 node_t *rbtree_max(const rbtree *t) {
   // TODO: implement find
-  return t->root;
+  node_t *current = t->root;
+  while (current != t->nil) {
+    if (current->right == t->nil) {
+      return current;
+    }
+    current = current->right;
+  }
+  return NULL;
+  // return t->root;
 }
 
 int rbtree_erase(rbtree *t, node_t *p) {
   // TODO: implement erase
+  
+  // remove node p
+  node_t *x;
+  node_t *y = p;
+  color_t y_original_color = y->color;
+  if (p->left == t->nil) {
+    x = p->right;
+    transplant(t, p, p->right);
+  } else if (p->right == t->nil) {
+    x = p->left;
+    transplant(t, p, p->left);
+  } else {
+    y = subtree_min(t, p->right);
+    x = y->right;
+    if (y->parent == p) {
+      x->parent = y;
+    } else {
+      transplant(t, y, y->right);
+      y->right = p->right;
+      y->right->parent = y;
+    }
+    transplant(t, p, y);
+    y->left = p->left;
+    y->left->parent = y;
+    y->color = p->color;
+  }
+  free(p);                            // why?????
+  if (y_original_color == RBTREE_BLACK) {
+    erase_fixup(t, x);
+  }
   return 0;
 }
 
@@ -101,6 +161,7 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
 int rotate_left(rbtree *t, node_t *x) {
   // rotate to left, pivots around x to x's right child
   // assumes x has right child
+  // Done!
 
   // get pointer to x's right child
   node_t *y = x->right;
@@ -132,9 +193,10 @@ int rotate_left(rbtree *t, node_t *x) {
 int rotate_right(rbtree *t, node_t *y) {
   // rotate to right, pivots around y to y's left child
   // assumes y has left child
+  // Done!
 
   // get pointer to y's left child
-  node_t *x = y->right;
+  node_t *x = y->left;
 
   // y takes x's right child as its left child(the child doesn't know yet)
   y->left = x->right;
@@ -179,7 +241,7 @@ int insert_fixup(rbtree *t, node_t *current) {
         current->parent->parent->color = RBTREE_RED;
         rotate_right(t, current->parent->parent);
       }
-    } else { // if parent is right child
+    } else { // if parent is right child - unchecked
       node_t *uncle = current->parent->parent->left;
       if (uncle->color == RBTREE_RED) {               // case 1 - right
         current->parent->color = RBTREE_BLACK;
@@ -187,16 +249,43 @@ int insert_fixup(rbtree *t, node_t *current) {
         current->parent->parent->color = RBTREE_RED;
         current = current->parent->parent;
       } else {                                        // case 2, 3
-        if (current == current->parent->left) {
+        if (current == current->parent->left) {       // case 2 -> case 3
           current = current->parent;
           rotate_right(t, current);
         }
-        current->parent->color = RBTREE_BLACK;
-        current->parent->parent->color == RBTREE_RED;
+        current->parent->color = RBTREE_BLACK;        // case 3
+        current->parent->parent->color = RBTREE_RED;
         rotate_left(t, current->parent->parent);
       }
     }
-    t->root->color = RBTREE_BLACK;
   }
+  t->root->color = RBTREE_BLACK;
+  return 0;
+}
+
+node_t *subtree_min(rbtree *t, node_t *current) {
+  while (current != t->nil) {
+    if (current->left == t->nil) {
+      return current;
+    }
+    current = current->left;
+  }
+  return NULL;
+}
+
+int transplant(rbtree *t, node_t *u, node_t* v) {
+  // transplant v into position of u
+  if (u->parent == t->nil) {
+    t->root = v;
+  } else if (u == u->parent->left) {
+    u->parent->left = v;
+  } else {
+    u->parent->right = v;
+  }
+  v->parent = u->parent;
+  return 0;
+}
+
+int erase_fixup(rbtree *t, node_t *x) {
   return 0;
 }
