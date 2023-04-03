@@ -10,6 +10,7 @@ node_t *subtree_min(rbtree *, node_t *);
 node_t *subtree_max(rbtree *, node_t *);
 int transplant(rbtree *, node_t *, node_t *);
 int erase_fixup(rbtree *, node_t *);
+void postorder_free(rbtree *, node_t *);
 
 rbtree *new_rbtree(void) {
   rbtree *t = (rbtree *)calloc(1, sizeof(rbtree));
@@ -31,6 +32,9 @@ rbtree *new_rbtree(void) {
 
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
+  node_t *p = t->root;
+  postorder_free(t, p);
+  free(t->nil);
   free(t);
 }
 
@@ -340,4 +344,17 @@ int erase_fixup(rbtree *t, node_t *x) {
   }
   x->color = RBTREE_BLACK;
   return 0;
+}
+
+void postorder_free(rbtree *t, node_t *p) {
+  if (p == t->nil) {
+    return;
+  }
+  if (p->left != t->nil) {
+    postorder_free(t, p->left);
+  }
+  if (p->right != t->nil) {
+    postorder_free(t, p->right);
+  }
+  free(p);
 }
