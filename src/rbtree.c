@@ -35,6 +35,7 @@ void delete_rbtree(rbtree *t) {
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
   // TODO: implement insert
+  // Done!
 
   // make and initialize new node with key
   node_t *newNode = (node_t*)malloc(sizeof(node_t));
@@ -59,11 +60,13 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
 
   if (current == t->nil) { // if the tree is empty: the new node is the root
     t->root = newNode;
+    // no need to change color: will be changed when fixing
   } else if (key < current->key) {  // append to current node(left)
     current->left = newNode;
   } else {                          // append to current node(right)
     current->right = newNode;
   }
+  insert_fixup(t, newNode);
 
   return t->root;
 }
@@ -157,7 +160,43 @@ int rotate_right(rbtree *t, node_t *y) {
   return 0;
 }
 
-int insert_fixup(rbtree *t, node_t *z) {
+int insert_fixup(rbtree *t, node_t *current) {
   // fixes the tree to satisfy RB properties
+  while (current->parent->color == RBTREE_RED) {
+    if (current->parent == current->parent->parent->left) { // if parent is left child
+      node_t *uncle = current->parent->parent->right;
+      if (uncle->color == RBTREE_RED) {               // case 1
+        current->parent->color = RBTREE_BLACK;
+        uncle->color = RBTREE_BLACK;
+        current->parent->parent->color = RBTREE_RED;
+        current = current->parent->parent;
+      } else {                                        // case 2, 3
+        if (current == current->parent->right) {      // case 2 -> case 3
+          current = current->parent;
+          rotate_left(t, current);
+        }
+        current->parent->color = RBTREE_BLACK;        // case 3
+        current->parent->parent->color = RBTREE_RED;
+        rotate_right(t, current->parent->parent);
+      }
+    } else { // if parent is right child
+      node_t *uncle = current->parent->parent->left;
+      if (uncle->color == RBTREE_RED) {               // case 1 - right
+        current->parent->color = RBTREE_BLACK;
+        uncle->color = RBTREE_BLACK;
+        current->parent->parent->color = RBTREE_RED;
+        current = current->parent->parent;
+      } else {                                        // case 2, 3
+        if (current == current->parent->left) {
+          current = current->parent;
+          rotate_right(t, current);
+        }
+        current->parent->color = RBTREE_BLACK;
+        current->parent->parent->color == RBTREE_RED;
+        rotate_left(t, current->parent->parent);
+      }
+    }
+    t->root->color = RBTREE_BLACK;
+  }
   return 0;
 }
