@@ -21,7 +21,7 @@ rbtree *new_rbtree(void) {
   // initiate nil(sentinel node)
   t->nil->color = RBTREE_BLACK;
   t->nil->key = 0;
-  t->nil->parent = t->nil->left = t->nil->right = NULL;
+  t->nil->parent = t->nil->left = t->nil->right = t->nil; // why?
 
   // empty node: root is nil(the sentinel node)
   t->root = t->nil;
@@ -152,7 +152,7 @@ int rbtree_erase(rbtree *t, node_t *p) {
 }
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
-  // TODO: implement to_array
+  // TODO: implement to_array  
   return 0;
 }
 
@@ -287,54 +287,54 @@ int transplant(rbtree *t, node_t *u, node_t* v) {
 }
 
 int erase_fixup(rbtree *t, node_t *x) {
-  while (x != t->nil && x->color == RBTREE_BLACK) {
+  while (x != t->root && x->color == RBTREE_BLACK) {
     if (x == x->parent->left) {
       node_t *w = x->parent->right;
-      if (w->color == RBTREE_RED) {
-        w->color == RBTREE_BLACK;
+      if (w->color == RBTREE_RED) {             // case 1 -> 2, 3, 4
+        w->color = RBTREE_BLACK;
         x->parent->color = RBTREE_RED;
         rotate_left(t, x->parent);
         w = x->parent->right;
       }
-      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) {
+      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) { // case 2
         w->color = RBTREE_RED;
         x = x->parent;
       } else {
-        if (w->right->color == RBTREE_BLACK) {
+        if (w->right->color == RBTREE_BLACK) {  // case 3
           w->left->color = RBTREE_BLACK;
           w->color = RBTREE_RED;
           rotate_right(t, w);
           w = x->parent->right;
         }
-        w->color = x->parent->color;
+        w->color = x->parent->color;            // case 4
         x->parent->color = RBTREE_BLACK;
         w->right->color = RBTREE_BLACK;
         rotate_left(t, x->parent);
-        x = t->root;
+        x = t->root; // terminate while loop
       }
     } else {
       node_t *w = x->parent->left;
-      if (w->color == RBTREE_RED) {
-        w->color == RBTREE_BLACK;
+      if (w->color == RBTREE_RED) {             // case 1 -> 2, 3, 4
+        w->color = RBTREE_BLACK;
         x->parent->color = RBTREE_RED;
         rotate_right(t, x->parent);
         w = x->parent->left;
       }
-      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) {
+      if (w->left->color == RBTREE_BLACK && w->right->color == RBTREE_BLACK) { // case 2
         w->color = RBTREE_RED;
         x = x->parent;
       } else {
-        if (w->left->color == RBTREE_BLACK) {
+        if (w->left->color == RBTREE_BLACK) {   // case 3
           w->right->color = RBTREE_BLACK;
           w->color = RBTREE_RED;
           rotate_left(t, w);
           w = x->parent->left;
         }
-        w->color = x->parent->color;
+        w->color = x->parent->color;            // case 4
         x->parent->color = RBTREE_BLACK;
         w->left->color = RBTREE_BLACK;
         rotate_right(t, x->parent);
-        x = t->root;
+        x = t->root; // terminate while loop
       }
     }
   }
