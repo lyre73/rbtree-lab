@@ -136,6 +136,7 @@ int rbtree_erase(rbtree *t, node_t *p) {
     transplant(t, p, p->left);
   } else {
     y = subtree_min(t, p->right);
+    y_original_color = y->color;
     x = y->right;
     if (y->parent == p) {
       x->parent = y;
