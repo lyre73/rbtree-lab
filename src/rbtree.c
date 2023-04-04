@@ -99,15 +99,16 @@ node_t *rbtree_min(const rbtree *t) {
   // initialize current node as root
   node_t *current = t->root;
 
+  // if the tree is empty, no node exists, return NULL
+  if (current == t->nil) {
+    return NULL;
+  }
+
   // going down left(smaller)
-  while (current != t->nil) {
-    if (current->left == t->nil) {
-      return current;
-    }
+  while (current->left != t->nil) {
     current = current->left;
   }
-  // if the tree is empty, current == t->root = t->nil, so the loop ends
-  return NULL;
+  return current;
 }
 
 node_t *rbtree_max(const rbtree *t) {
@@ -116,15 +117,16 @@ node_t *rbtree_max(const rbtree *t) {
   // initialize current node as root
   node_t *current = t->root;
 
+  // if the tree is empty, no node exists, return NULL
+  if (current == t->nil) {
+    return NULL;
+  }
+
   // going down right(larger)
-  while (current != t->nil) {
-    if (current->right == t->nil) {
-      return current;
-    }
+  while (current->right != t->nil) {
     current = current->right;
   }
-  // if the tree is empty, current == t->root = t->nil, so the loop ends
-  return NULL;
+  return current;
 }
 
 int rbtree_erase(rbtree *t, node_t *p) {
