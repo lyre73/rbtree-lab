@@ -8,8 +8,8 @@ int rotate_right(rbtree *, node_t *);
 int insert_fixup(rbtree *, node_t *);
 int transplant(rbtree *, node_t *, node_t *);
 int erase_fixup(rbtree *, node_t *);
-void postorder_free(rbtree *, node_t *);
-void inorder_arr(const rbtree *, node_t *, size_t *, key_t *, const size_t);
+void free_node_postorder(rbtree *, node_t *);
+void fill_arr_inorder(const rbtree *, node_t *, size_t *, key_t *, const size_t);
 
 rbtree *new_rbtree(void) {
   rbtree *t = (rbtree *)calloc(1, sizeof(rbtree));
@@ -32,7 +32,7 @@ rbtree *new_rbtree(void) {
 void delete_rbtree(rbtree *t) {
   // TODO: reclaim the tree nodes's memory
 
-  postorder_free(t, t->root); // postorder to prevent free a node before end of using
+  free_node_postorder(t, t->root); // postorder to prevent free a node before end of using
   free(t->nil); // don't forget to free nil node too!
   free(t);
 }
@@ -179,7 +179,7 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
 
   size_t idx = 0; // to check how many nodes have been pushed into the array(if exceeds n, stop pushing)
   // inorder to make sorted output
-  inorder_arr(t, t->root, &idx, arr, n); // get the tree, start node, pointer to idx and arr, arr size
+  fill_arr_inorder(t, t->root, &idx, arr, n); // get the tree, start node, pointer to idx and arr, arr size
 
   return 0;
 }
@@ -306,7 +306,7 @@ int transplant(rbtree *t, node_t *u, node_t* v) {
 }
 
 int erase_fixup(rbtree *t, node_t *x) {
-  while (x != t->root && x->color == RBTREE_BLACK) {
+  while (x != t->root && x->color == RBTREE_BLACK) { // is it doubly black? if it isn't, red&black, skip iteration and just color it black
     if (x == x->parent->left) { // to determine w(and x)
       node_t *w = x->parent->right; // w is x's sibling
       if (w->color == RBTREE_RED) {             // case 1 -> 2, 3, 4
@@ -361,27 +361,26 @@ int erase_fixup(rbtree *t, node_t *x) {
   return 0;
 }
 
-void postorder_free(rbtree *t, node_t *p) {
+void free_node_postorder(rbtree *t, node_t *p) {
   // while DFS through the tree, free all the nodes
-  // postorder to prevent freeing a node before end of being referenced
+  // postorder, to prevent freeing a node before end of being referenced
   if (p == t->nil) { // if it's the sentinel node, should not free now
     return;
   }
   // no need to check if p's children are nil, b/c fuction will return before freeing if it is
-  postorder_free(t, p->left);
-  postorder_free(t, p->right);
+  free_node_postorder(t, p->left);
+  free_node_postorder(t, p->right);
   free(p); // no more reference(child), free the node
 }
 
-void inorder_arr(const rbtree *t, node_t *p, size_t *idx, key_t *arr, const size_t n) {
+void fill_arr_inorder(const rbtree *t, node_t *p, size_t *idx, key_t *arr, const size_t n) {
   // DFS through the tree, push the key of current node to array
   // inorder to make sorted output
   if (p != t->nil && *idx < n) { // to not call the function again after fully filling up the array
-    inorder_arr(t, p->left, idx, arr, n);
+    fill_arr_inorder(t, p->left, idx, arr, n);
     if (*idx < n) { // always check idx to prevent change wrong memory(over given array)
-      arr[*idx] = p->key; // push the key to array
-      (*idx)++; // update idx
+      arr[(*idx)++] = p->key; // push the key to array, update idx
     }
-    inorder_arr(t, p->right, idx, arr, n);
+    fill_arr_inorder(t, p->right, idx, arr, n);
   }
 }
